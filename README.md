@@ -42,16 +42,19 @@ pip install -r requirements.txt
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
 
+## Implementation Summary
+
+PawPal+ turns pet care tasks into a daily plan. An `Owner` keeps track of `Pet` objects, and each pet manages its own `CareTask` objects, which store details like due date, duration, priority, and recurrence. The `DailyScheduler` finds incomplete tasks due on the selected day, prioritizes them, and fits them into the available time. Finally, the Streamlit app collects the details and displays the plan.
+
 ## 🖥️ Sample Output
 
 Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+Today's Schedule for Jordan (2 pets):
+- 08:00 Mochi: Walk (30 min, high priority, daily)
+- 09:00 Luna: Feed (10 min, medium priority, daily)
+- 17:30 Mochi: Play (20 min, low priority, daily)
 ```
 
 ## 🧪 Testing PawPal+
@@ -70,16 +73,15 @@ Sample test output:
 # Paste your pytest output here
 ```
 
-## 📐 Smarter Scheduling
-
-> Fill in once you've implemented scheduling logic.
+## 📐 Scheduling Logic
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `DailyScheduler.build_daily_schedule` | Prioritizes high-priority tasks, then earlier due times. |
+| Filtering | `DailyScheduler.filter_tasks_by_due_status` | Selects incomplete tasks due today, upcoming, or overdue. |
+| Time constraint | `DailyScheduler.build_daily_schedule` | Includes tasks that fit within available minutes; tasks that do not fit are skipped. |
+| Recurrence | `CareTask.is_due_on` | Supports one-time, daily, and weekly occurrences, starting on the task's due date. |
+| Task validation | `CareTask` | Requires positive duration, low/medium/high priority, and once/daily/weekly frequency. |
 
 ## 📸 Demo Walkthrough
 
