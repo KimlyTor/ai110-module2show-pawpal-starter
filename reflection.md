@@ -5,12 +5,25 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+    - The UML design is based on an owner who can have one or more pets. Each pet has its own care tasks, and a **DailyScheduler** gathers and organizes tasks across all the pets.
+
 - What classes did you include, and what responsibilities did you assign to each?
+
+    - **Owner:** Stores identifying information and manages a list of pets.
+    - **Pet:** Stores identifying information and manages its care tasks.
+    - **CareTask:** Stores a description, title, due date, and completion status; it can be marked complete.
+    - **DailyScheduler:** Gathers tasks across pets, sorts and filters them by due date, and builds a daily schedule.
 
 **b. Design changes**
 
 - Did your design change during implementation?
+    - Yes.
 - If yes, describe at least one change and why you made it.
+
+    I clarified how pets, tasks, and owners relate to each other:
+    - Each task belongs to one pet, so completion is tracked independently.
+    - Scheduled tasks stay paired with their pets, so it's clear whose task it is.
+    - Each owner must have at least one pet, matching the UML relationship.
 
 ---
 

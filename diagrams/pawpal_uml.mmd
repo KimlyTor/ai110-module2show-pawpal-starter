@@ -2,30 +2,39 @@ classDiagram
     class Owner {
         +name
         +update_details()
+        +pets: Pet[]
+        +add_pet(pet)
+        +list_pets()
+        +remove_pet(pet)
     }
 
     class Pet {
         +name
         +species
         +update_details()
+        +tasks: CareTask[]
+        +add_task(task)
+        +list_tasks()
+        +remove_task(task)
+        +complete_task(task)
     }
 
     class CareTask {
-        +title
-        +duration
-        +priority
-        +due_date
-        +is_completed
-        +mark_complete()
+        +description: String
+        +title: String
+        +due_date: DateTime
+        +is_completed: Boolean
+        +mark_complete(): void
     }
 
-    class DailyPlan {
-        +date
-        +tasks
-        +add_task(task)
-        +show_schedule()
+    class DailyScheduler {
+        +get_tasks(pets)
+        +sort_tasks_by_due_date(tasks)
+        +filter_tasks_by_due_status(tasks, date, status)
+        +build_daily_schedule(tasks, date)
     }
 
     Owner "1" --> "1..*" Pet : has
     Pet "1" --> "0..*" CareTask : has
-    DailyPlan "0..*" --> "0..*" CareTask : schedules
+    DailyScheduler ..> Pet : retrieves tasks across multiple pets
+    DailyScheduler ..> CareTask : organizes and schedules
