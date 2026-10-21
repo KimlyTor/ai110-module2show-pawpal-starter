@@ -57,21 +57,38 @@ Today's Schedule for Jordan (2 pets):
 - 17:30 Mochi: Play (20 min, low priority, daily)
 ```
 
-## 🧪 Testing PawPal+
+## Testing PawPal+
+
+Run the test suite from the project root:
 
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest
 ```
 
-Sample test output:
+To run only the PawPal scheduler tests:
 
 ```
-# Paste your pytest output here
+python -m pytest tests/test_pawpal.py
 ```
+
+The tests cover task completion, chronological sorting, daily and weekly recurring
+occurrences, and detecting conflicting task times.
+
+Test output:
+
+```
+==================== test session starts =====================
+platform darwin -- Python 3.9.6, pytest-8.4.2, pluggy-1.6.0
+rootdir: /Users/kt/Desktop/codePath2026/projects/ai110-module2show-pawpal-starter
+collected 6 items                                            
+
+tests/test_pawpal.py ......                            [100%]
+
+===================== 6 passed in 0.01s ======================
+```
+**Confidence Level:** ⭐⭐⭐⭐☆ (4/5) — The current tests pass for task completion,
+sorting, recurring tasks, and conflict detection. This is a positive signal, but
+the test suite is small and does not cover every possible case.
 
 ## Smarter Scheduling
 
@@ -97,3 +114,5 @@ Describe your app in numbered steps so a reader can follow along without watchin
 5. <!-- Add more steps as needed -->
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+
+**Confidence Level:** ⭐⭐⭐⭐☆ (4/5) — The current tests pass for task completion, sorting, recurring tasks, and conflict detection. This is a positive signal, but the test suite is small and does not cover every possible case.

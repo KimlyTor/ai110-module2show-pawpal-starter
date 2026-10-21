@@ -155,7 +155,7 @@ class CareTask:
             return
 
         days_until_next = 1 if self.frequency == "daily" else 7
-        next_due_date = date.today() + timedelta(days=days_until_next)
+        next_due_date = self.due_date.date() + timedelta(days=days_until_next)
         self._pet.add_task(
             CareTask(
                 description=self.description,
