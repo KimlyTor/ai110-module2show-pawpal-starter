@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 
 
@@ -142,8 +142,30 @@ class CareTask:
         return selected_date == first_due_date
 
     def mark_complete(self) -> None:
-        """Mark this task as completed."""
+        """Mark this task complete and append its next occurrence if attached.
+
+        One-time tasks and recurring tasks not attached to a pet do not create
+        another task. Repeated calls on an already completed task do nothing.
+        """
+        if self.is_completed:
+            return
+
         self.is_completed = True
+        if self.frequency == "once" or self._pet is None:
+            return
+
+        days_until_next = 1 if self.frequency == "daily" else 7
+        next_due_date = date.today() + timedelta(days=days_until_next)
+        self._pet.add_task(
+            CareTask(
+                description=self.description,
+                title=self.title,
+                due_date=datetime.combine(next_due_date, self.due_date.time()),
+                duration_minutes=self.duration_minutes,
+                priority=self.priority,
+                frequency=self.frequency,
+            )
+        )
 
 
 TaskAssignment = tuple[Pet, CareTask]
@@ -161,29 +183,52 @@ class DailyScheduler:
         """Sort pet-task pairs by their due dates."""
         return sorted(tasks, key=lambda assignment: assignment[1].due_date)
 
-    def filter_tasks_by_due_status(
-        self, tasks: list[TaskAssignment], selected_date: date, status: str
-    ) -> list[TaskAssignment]:
-        """Filter incomplete tasks by their due status on a selected date."""
-        status_filters = {
-            "today": lambda task_date: task_date == selected_date,
-            "upcoming": lambda task_date: task_date > selected_date,
-            "overdue": lambda task_date: task_date < selected_date,
-        }
-        if status not in status_filters:
-            raise ValueError("Status must be 'today', 'upcoming', or 'overdue'.")
+    def sort_by_time(self, tasks: list[TaskAssignment]) -> list[TaskAssignment]:
+        """Return pet-task pairs sorted by time of day, ignoring the date."""
+        return sorted(tasks, key=lambda assignment: assignment[1].due_date.time())
 
-        matches_status = status_filters[status]
+    def filter_tasks_by_completion_status(
+        self, tasks: list[TaskAssignment], is_completed: bool
+    ) -> list[TaskAssignment]:
+        """Return only pet-task pairs whose completion flag matches the request."""
         return [
             assignment
             for assignment in tasks
-            if not assignment[1].is_completed
-            and (
-                assignment[1].is_due_on(selected_date)
-                if status == "today"
-                else matches_status(assignment[1].due_date.date())
-            )
+            if assignment[1].is_completed is is_completed
         ]
+
+    def filter_tasks_by_due_status(
+        self, tasks: list[TaskAssignment], selected_date: date, status: str
+    ) -> list[TaskAssignment]:
+        """Return incomplete tasks classified as today, upcoming, or overdue.
+
+        Recurring tasks are checked for an occurrence on ``selected_date`` when
+        ``status`` is ``"today"``. Upcoming and overdue statuses compare the
+        task's original due date with ``selected_date``.
+
+        Raises:
+            ValueError: If ``status`` is not "today", "upcoming", or "overdue".
+        """
+        if status not in {"today", "upcoming", "overdue"}:
+            raise ValueError("Status must be 'today', 'upcoming', or 'overdue'.")
+
+        matches = []
+        for pet, task in tasks:
+            if task.is_completed:
+                continue
+
+            task_date = task.due_date.date()
+            if status == "today":
+                is_match = task.is_due_on(selected_date)
+            elif status == "upcoming":
+                is_match = task_date > selected_date
+            else:
+                is_match = task_date < selected_date
+
+            if is_match:
+                matches.append((pet, task))
+
+        return matches
 
     def build_daily_schedule(
         self,
@@ -191,7 +236,14 @@ class DailyScheduler:
         selected_date: date,
         available_minutes: Optional[int] = None,
     ) -> list[TaskAssignment]:
-        """Prioritize today's tasks within the available time."""
+        """Prioritize incomplete tasks due today and fit them into a time limit.
+
+        Tasks are ordered by priority (high to low), then by due datetime.
+        Tasks that do not fit in the remaining minutes are skipped.
+
+        Raises:
+            ValueError: If ``available_minutes`` is negative.
+        """
         due_today = self.filter_tasks_by_due_status(tasks, selected_date, "today")
         if available_minutes is not None and available_minutes < 0:
             raise ValueError("Available time cannot be negative.")
@@ -215,3 +267,36 @@ class DailyScheduler:
                 schedule.append(assignment)
                 remaining_minutes -= duration
         return schedule
+
+    def find_time_conflicts(
+        self, tasks: list[TaskAssignment], selected_date: date
+    ) -> list[tuple[TaskAssignment, TaskAssignment]]:
+        """Return pairs of incomplete tasks with overlapping intervals that day.
+
+        Recurring tasks are considered if they occur on ``selected_date``.
+        Overlap is checked across all pets; back-to-back tasks are not conflicts.
+        """
+        scheduled_tasks = [
+            assignment
+            for assignment in tasks
+            if not assignment[1].is_completed
+            and assignment[1].is_due_on(selected_date)
+        ]
+        conflicts = []
+        for index, first_assignment in enumerate(scheduled_tasks):
+            first_task = first_assignment[1]
+            first_start = datetime.combine(selected_date, first_task.due_date.time())
+            first_end = first_start + timedelta(minutes=first_task.duration_minutes)
+            for second_assignment in scheduled_tasks[index + 1 :]:
+                second_task = second_assignment[1]
+                if first_task is second_task:
+                    continue
+                second_start = datetime.combine(
+                    selected_date, second_task.due_date.time()
+                )
+                second_end = second_start + timedelta(
+                    minutes=second_task.duration_minutes
+                )
+                if first_start < second_end and second_start < first_end:
+                    conflicts.append((first_assignment, second_assignment))
+        return conflicts

@@ -81,6 +81,95 @@ def test_mark_complete_changes_status_and_excludes_task_from_schedule() -> None:
     assert DailyScheduler().build_daily_schedule(assignments, TODAY) == []
 
 
+@pytest.mark.parametrize(
+    ("frequency", "days_until_next"),
+    [("daily", 1), ("weekly", 7)],
+)
+def test_completing_recurring_task_creates_next_occurrence(
+    frequency: str, days_until_next: int
+) -> None:
+    pet = Pet(name="Mochi", species="dog")
+    task = make_task("Walk", frequency=frequency, due_time=time(8, 30))
+    pet.add_task(task)
+
+    pet.complete_task(task)
+
+    next_task = pet.list_tasks()[1]
+    assert task.is_completed is True
+    assert next_task is not task
+    assert next_task.is_completed is False
+    assert next_task.due_date == datetime.combine(
+        date.today() + timedelta(days=days_until_next), time(8, 30)
+    )
+    assert next_task.frequency == frequency
+
+
+def test_filter_tasks_by_completion_status() -> None:
+    assignments = [
+        make_assignment(make_task("Incomplete")),
+        make_assignment(make_task("Complete", completed=True)),
+    ]
+    scheduler = DailyScheduler()
+
+    assert [
+        task.title
+        for _, task in scheduler.filter_tasks_by_completion_status(
+            assignments, is_completed=True
+        )
+    ] == ["Complete"]
+    assert [
+        task.title
+        for _, task in scheduler.filter_tasks_by_completion_status(
+            assignments, is_completed=False
+        )
+    ] == ["Incomplete"]
+
+
+def test_find_time_conflicts_detects_overlaps_for_same_and_different_pets() -> None:
+    mochi = Pet(name="Mochi", species="dog")
+    luna = Pet(name="Luna", species="cat")
+    assignments = [
+        (mochi, make_task("Walk", due_time=time(9, 0), duration=30)),
+        (mochi, make_task("Medication", due_time=time(9, 15), duration=10)),
+        (luna, make_task("Breakfast", due_time=time(9, 0), duration=10)),
+    ]
+
+    conflicts = DailyScheduler().find_time_conflicts(assignments, TODAY)
+
+    assert conflicts == [
+        (assignments[0], assignments[1]),
+        (assignments[0], assignments[2]),
+    ]
+
+
+def test_find_time_conflicts_ignores_non_overlapping_or_unscheduled_tasks() -> None:
+    assignments = [
+        make_assignment(make_task("First", due_time=time(9, 0), duration=30)),
+        make_assignment(make_task("Adjacent", due_time=time(9, 30), duration=10)),
+        make_assignment(make_task("Other day", due_date=TODAY + timedelta(days=1))),
+        make_assignment(make_task("Completed", completed=True)),
+    ]
+
+    assert DailyScheduler().find_time_conflicts(assignments, TODAY) == []
+
+
+def test_find_time_conflicts_checks_recurring_tasks_on_selected_date() -> None:
+    recurring_task = make_task(
+        "Daily walk",
+        due_date=TODAY - timedelta(days=1),
+        due_time=time(9, 0),
+        duration=30,
+        frequency="daily",
+    )
+    one_time_task = make_task("Medication", due_time=time(9, 15), duration=10)
+
+    conflicts = DailyScheduler().find_time_conflicts(
+        [make_assignment(recurring_task), make_assignment(one_time_task)], TODAY
+    )
+
+    assert len(conflicts) == 1
+
+
 # def test_due_status_filters_incomplete_tasks() -> None:
 #     assignments = [
 #         make_assignment(make_task("Today")),

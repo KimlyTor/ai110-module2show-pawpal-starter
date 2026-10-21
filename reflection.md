@@ -47,11 +47,11 @@
 
 - Describe one tradeoff your scheduler makes.
 
-    The scheduler puts task priority ahead of due time, so a higher-priority task may be scheduled before a lower-priority task that is due sooner.
+    The `filter_tasks_by_due_status` method uses explicit if/elif branches instead of a compact dictionary of lambdas. This takes a few more lines, but makes each status check easier to follow.
 
 - Why is that tradeoff reasonable for this scenario?
 
-    This is reasonable because important care, such as medication, should not be missed just because another task is due a little earlier.
+    The logic in `filter_tasks_by_due_status` is straightforward to understand and maintain, especially because "today" uses recurrence-aware logic while "upcoming" and "overdue" compare dates. The small amount of extra code is worthwhile for clarity.
 
 ---
 

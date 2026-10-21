@@ -73,15 +73,18 @@ Sample test output:
 # Paste your pytest output here
 ```
 
-## 📐 Scheduling Logic
+## Smarter Scheduling
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | `DailyScheduler.build_daily_schedule` | Prioritizes high-priority tasks, then earlier due times. |
-| Filtering | `DailyScheduler.filter_tasks_by_due_status` | Selects incomplete tasks due today, upcoming, or overdue. |
-| Time constraint | `DailyScheduler.build_daily_schedule` | Includes tasks that fit within available minutes; tasks that do not fit are skipped. |
-| Recurrence | `CareTask.is_due_on` | Supports one-time, daily, and weekly occurrences, starting on the task's due date. |
-| Task validation | `CareTask` | Requires positive duration, low/medium/high priority, and once/daily/weekly frequency. |
+| Feature | Method(s) | How it works |
+|---------|-----------|--------------|
+| Collect tasks for an owner | `Owner.get_all_tasks`, `DailyScheduler.get_tasks` | Returns each task paired with the pet it belongs to. |
+| Sort tasks | `DailyScheduler.sort_tasks_by_due_date`, `DailyScheduler.sort_by_time` | Sorts by full due date/time or by time of day alone. |
+| Filter tasks | `DailyScheduler.filter_tasks_by_completion_status`, `DailyScheduler.filter_tasks_by_due_status` | Filters by completion, or selects incomplete tasks that are due today, upcoming, or overdue. |
+| Recurring due dates | `CareTask.is_due_on` | Determines whether one-time, daily, or weekly tasks occur on the selected date. |
+| Build a daily plan | `DailyScheduler.build_daily_schedule` | Prioritizes high- to low-priority tasks, then earlier due times; skips tasks that exceed the available minutes. |
+| Detect time conflicts | `DailyScheduler.find_time_conflicts` | Finds overlapping task durations on the selected date, including across pets and recurring tasks. The app and CLI demo display a warning rather than stopping. |
+| Create recurring occurrences | `CareTask.mark_complete` | When an attached daily or weekly task is completed, adds its next occurrence. |
+| Validate task details | `CareTask.__post_init__` | Requires positive duration, an allowed priority, and an allowed frequency. |
 
 ## 📸 Demo Walkthrough
 
