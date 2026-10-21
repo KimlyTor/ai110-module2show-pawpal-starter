@@ -84,12 +84,29 @@
 **a. What you tested**
 
 - What behaviors did you test?
+
+    Tested behaviors:
+    - Task completion and adding tasks
+    - Chronological sorting
+    - Daily and weekly recurrence
+    - Conflict detection
 - Why were these tests important?
+
+    They check key scheduler behaviors, including task ordering, recurrence, completion, and conflict detection.
 
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
+
+    I’m very confident in the tested behaviors, but the test suite is small. 
 - What edge cases would you test next if you had more time?
+
+    I would test:
+    - Priority ordering
+    - Time limits and skipped tasks
+    - Back-to-back tasks
+    - Invalid task details
+    - Completing a recurring task more than once
 
 ---
 
@@ -99,10 +116,16 @@
 
 - What part of this project are you most satisfied with?
 
+    I’m most satisfied that I caught and fixed a bug in the daily and weekly recurrence behavior. The next occurrence wasn’t being scheduled correctly, so I tested the logic and confirmed daily tasks recur the next day and weekly tasks recur seven days later.
+
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
 
+    If I had another iteration, I would add persistent storage so pet and task information is saved between sessions. I would also expand the tests for schedule time limits, priority ordering, and edge cases in recurring tasks.
+
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+
+    I learned that planning the classes and their relationships before coding makes a system easier to understand and implement. Creating a UML (Unified Modeling Language) class diagram helped me visualize how `Owner`, `Pet`, `CareTask`, and `DailyScheduler` work together and gave me a guide to follow as I built the code.

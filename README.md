@@ -46,6 +46,10 @@ pip install -r requirements.txt
 
 PawPal+ turns pet care tasks into a daily plan. An `Owner` keeps track of `Pet` objects, and each pet manages its own `CareTask` objects, which store details like due date, duration, priority, and recurrence. The `DailyScheduler` finds incomplete tasks due on the selected day, prioritizes them, and fits them into the available time. Finally, the Streamlit app collects the details and displays the plan.
 
+## UML Class Diagram
+
+![PawPal UML class diagram](diagrams/pawpal_uml.svg)
+
 ## 🖥️ Sample Output
 
 Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
@@ -103,16 +107,59 @@ the test suite is small and does not cover every possible case.
 | Create recurring occurrences | `CareTask.mark_complete` | When an attached daily or weekly task is completed, adds its next occurrence. |
 | Validate task details | `CareTask.__post_init__` | Requires positive duration, an allowed priority, and an allowed frequency. |
 
-## 📸 Demo Walkthrough
+## Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+1. Edit the owner name and add pets with their species.
+2. Add tasks with a due date and time, duration, priority, and frequency. Filter or sort the task list, and mark tasks complete.
+3. Choose a schedule date and available time, then select **Generate schedule**. PawPal+ prioritizes tasks, includes those that fit, and warns about overlapping tasks.
+4. Run the CLI example to see sorting, completion status, conflict warnings, and a sample schedule.
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+Run the CLI example with:
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+```bash
+python main.py
+```
 
-**Confidence Level:** ⭐⭐⭐⭐☆ (4/5) — The current tests pass for task completion, sorting, recurring tasks, and conflict detection. This is a positive signal, but the test suite is small and does not cover every possible case.
+Sample output from a run on October 21, 2026:
+
+```
+Tasks in insertion order:
+- 2026-10-22 07:00 Mochi: Feed (incomplete)
+- 2026-10-21 08:00 Mochi: Walk (completed)
+- 2026-10-22 08:00 Mochi: Walk (incomplete)
+- 2026-10-21 09:00 Mochi: Walk (incomplete)
+- 2026-10-21 17:30 Luna: Play (incomplete)
+- 2026-10-21 09:00 Luna: Breakfast (incomplete)
+
+Tasks sorted by date and time:
+- 2026-10-21 08:00 Mochi: Walk
+- 2026-10-21 09:00 Mochi: Walk
+- 2026-10-21 09:00 Luna: Breakfast
+- 2026-10-21 17:30 Luna: Play
+- 2026-10-22 07:00 Mochi: Feed
+- 2026-10-22 08:00 Mochi: Walk
+
+Tasks sorted by time of day (date ignored):
+- 2026-10-22 07:00 Mochi: Feed
+- 2026-10-21 08:00 Mochi: Walk
+- 2026-10-22 08:00 Mochi: Walk
+- 2026-10-21 09:00 Mochi: Walk
+- 2026-10-21 09:00 Luna: Breakfast
+- 2026-10-21 17:30 Luna: Play
+
+Completed tasks:
+- Mochi: Walk
+
+Incomplete tasks:
+- Mochi: Feed
+- Mochi: Walk
+- Mochi: Walk
+- Luna: Play
+- Luna: Breakfast
+WARNING: Time conflict: Mochi's Walk overlaps Luna's Breakfast.
+
+Today's Schedule for Jordan (2 pets):
+- 09:00 Mochi: Walk (30 min, high priority, once)
+- 09:00 Luna: Breakfast (10 min, medium priority, daily)
+- 17:30 Luna: Play (20 min, low priority, daily)
+```

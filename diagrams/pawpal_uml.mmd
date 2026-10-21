@@ -1,40 +1,53 @@
 classDiagram
     class Owner {
-        +name
-        +update_details()
-        +pets: Pet[]
-        +add_pet(pet)
-        +list_pets()
-        +remove_pet(pet)
+        +name: str
+        +pets: list~Pet~
+        +update_details(name: str): None
+        +add_pet(pet: Pet): None
+        +list_pets(): list~Pet~
+        +get_all_tasks(): list~tuple~Pet, CareTask~~
+        +remove_pet(pet: Pet): None
     }
 
     class Pet {
-        +name
-        +species
-        +update_details()
-        +tasks: CareTask[]
-        +add_task(task)
-        +list_tasks()
-        +remove_task(task)
-        +complete_task(task)
+        +name: str
+        +species: str
+        +tasks: list~CareTask~
+        +update_details(name: str, species: str): None
+        +add_task(task: CareTask): None
+        +list_tasks(): list~CareTask~
+        +remove_task(task: CareTask): None
+        +complete_task(task: CareTask): None
     }
 
     class CareTask {
-        +description: String
-        +title: String
-        +due_date: DateTime
-        +is_completed: Boolean
-        +mark_complete(): void
+        +description: str
+        +title: str
+        +due_date: datetime
+        +is_completed: bool
+        +duration_minutes: int
+        +priority: str
+        +frequency: str
+        -_pet: Optional~Pet~
+        +is_due_on(selected_date: date): bool
+        +mark_complete(): None
     }
 
     class DailyScheduler {
-        +get_tasks(pets)
-        +sort_tasks_by_due_date(tasks)
-        +filter_tasks_by_due_status(tasks, date, status)
-        +build_daily_schedule(tasks, date)
+        +get_tasks(owner: Owner): list~TaskAssignment~
+        +sort_tasks_by_due_date(tasks: list~TaskAssignment~): list~TaskAssignment~
+        +sort_by_time(tasks: list~TaskAssignment~): list~TaskAssignment~
+        +filter_tasks_by_completion_status(tasks: list~TaskAssignment~, is_completed: bool): list~TaskAssignment~
+        +filter_tasks_by_due_status(tasks: list~TaskAssignment~, selected_date: date, status: str): list~TaskAssignment~
+        +build_daily_schedule(tasks: list~TaskAssignment~, selected_date: date, available_minutes: Optional~int~): list~TaskAssignment~
+        +find_time_conflicts(tasks: list~TaskAssignment~, selected_date: date): list~tuple~TaskAssignment, TaskAssignment~~
     }
 
-    Owner "1" --> "1..*" Pet : has
-    Pet "1" --> "0..*" CareTask : has
-    DailyScheduler ..> Pet : retrieves tasks across multiple pets
-    DailyScheduler ..> CareTask : organizes and schedules
+    class TaskAssignment
+    <<type alias>> TaskAssignment
+    note for TaskAssignment "tuple[Pet, CareTask]"
+
+    Owner "0..*" --> "1..*" Pet : contains
+    Pet "0..1" <-- "0..*" CareTask : attached to
+    DailyScheduler ..> Owner : retrieves assignments
+    DailyScheduler ..> TaskAssignment : filters and schedules
